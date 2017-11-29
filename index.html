@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<head>
+<title>抽奖工具</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/global.css">
+<link rel="stylesheet" href="css/open.css">
+<style type="text/css"> 
+body {
+	background-image: url('img/background.jpg');
+	background-size:cover; 
+}
+
+#msg {
+	color:#fff;
+	word-wrap: break-word;
+}
+#title {
+	color:#fff;
+	position:absolute;
+	top:30px;
+	left:50%;
+	margin:0 0 0 -160px;
+	text-align:center; 
+	font-size:40px;
+	font-family: KaiTi;
+}
+input {
+	background-color:transparent;
+	border:0px;
+	color:#fff;
+	width:30px;
+}
+#op {
+	color:#fff;
+	font-size:8px;
+	position:absolute;
+	bottom:0;
+}
+#sameppls {
+	width:20px;
+}
+
+#wrap {
+	position:absolute;
+	top: 50%;
+	left:50%;
+	margin-left:-160px;
+	margin-top:-50px;
+
+}
+#rs {
+	word-wrap: break-word;
+}
+</style> 
+</head>
+<div id='title'>抽奖宝箱示例页面</div>
+<div id = 'wrap'>
+<div class="open-has">
+
+      <div class="mod-chest">
+        
+        <div class="chest-close show ">
+          <div class="gift"></div>
+          <div class="tips">
+            <i class="arrow"></i>
+          </div>
+        </div>
+        <div class="chest-open ">
+          <div class="mod-chest-cont open-cont">
+            <div class="content">
+              <div class="gift" id="rs">
+                <div class="icon"><img src="img/chest-icon-zuan.png"></div> x 500 
+              </div>
+              <div class="func">
+                <button class="chest-btn">恭喜上面号码中奖！</button>
+              </div>
+            </div>
+          </div>
+        </div>        
+      </div>
+</div>
+</div>
+<div id='op'>
+一共<input type="text" id="ppls" value=10 />人参与抽奖，
+每次<input type="text" id="sameppls" value=1 />人中奖。
+<span class="resetbtn">【重置】</span>
+<span class="showresult">【历史】</span>
+</div>
+<div id='msg'></div>
+
+<script type="text/javascript" src="js/zepto.min.js"></script>
+<script>
+$(function()
+{ 
+    if(getCookie("max")) 
+		document.getElementById("ppls").value = getCookie("max");
+	if(getCookie("sameppls")) 
+		document.getElementById("sameppls").value = getCookie("sameppls");
+});
+
+document.onkeydown = function(event)
+{
+    if (event.keyCode == "32") {
+		location.reload();
+	}
+}
+$(".resetbtn").click(function()
+{
+	console.log("reset");
+	deleteCookie("nameno");
+	deleteCookie("max");
+	deleteCookie("sameppls");
+	document.getElementById("ppls").value = 10;
+	document.getElementById("sameppls").value = 1;
+})
+
+$(".showresult").click(function(){
+	document.getElementById("msg").innerHTML = getCookie('nameno'); 
+})
+
+$(".chest-close").click(function(){
+	document.getElementById("msg").innerHTML = '';
+	var max = document.getElementById("ppls").value;  
+	var sameppls = document.getElementById("sameppls").value;  
+	setCookie('max',max);
+	setCookie('sameppls',sameppls);
+	if(sameppls =='') {
+		 $("#msg").text('请输入合理的中奖人数!!!');
+		 return;
+	}
+	if(max > 1) {
+		var s = 0 , k = 0;
+		var myArray=new Array();
+		for (var i=0;i<sameppls;i++) {
+			console.log('select number '+ i);
+			console.log(sameppls);
+			if(k == max*10) {
+				console.log('No records here, stop!!!');
+				$("#msg").text('已经没有有效的号码了!!!');
+				return;
+			}
+			s = parseInt(Math.random()*max,10)+1;
+			
+			if(myArray.indexOf(s) != -1)
+			{
+				i--;
+				k++;
+				console.log('result is same as '+ s + ', try again!' + k);
+				continue;
+			}
+		
+			var cookie = getCookie('nameno');  
+			console.log('cookie='+cookie);
+			if(cookie) {
+				var cookieArr = cookie.split(","); 
+				//console.log(cookieArr);
+				console.log(cookieArr.indexOf(s));
+				if(cookieArr.indexOf(s.toString()) != -1)
+				{
+					i--;
+					k++;
+					console.log('result is in cookie as '+ s + ', try again!' + k);
+					continue;
+				}
+			}				
+			myArray[i] = s; 
+			k = 0;
+		}
+		document.getElementById("rs").innerHTML = myArray.toString();
+		console.log('setcookie='+myArray.toString());
+		if(getCookie('nameno'))
+			setCookie('nameno',getCookie('nameno')+','+myArray.toString());
+		else
+			setCookie('nameno',myArray.toString());
+	}
+	else {
+		$("#msg").text('请输入合理的参与人数!!!');
+		return;
+	}
+
+    $(this).addClass("shake");
+    var that=this;
+    
+    this.addEventListener("webkitAnimationEnd", function(){
+      
+		$(that).closest(".open-has").addClass("opened");
+		setTimeout(function(){
+			$(that).removeClass("show");
+			$(that).closest(".mod-chest").find(".chest-open").addClass("show");
+			setTimeout(function(){
+				$(".chest-open").addClass("blur");
+			},500)
+		},500)
+    }, false);
+  })
+
+function setCookie(name,value,days) {
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime()+(days*24*60*60*1000));
+        var expires = "; expires="+date.toGMTString();
+    }else{
+        var expires = "";
+    }
+    document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+function deleteCookie(name) {
+    setCookie(name,"",-1);
+}
+</script>
